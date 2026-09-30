@@ -1,7 +1,7 @@
 {
-  "name": "ness-chatbot-admin",
+  "name": "kkr-chatbot-admin",
   "version": "0.1.0",
-  "description": "Ness Chatbot Admin Console - Page management and embedding",
+  "description": "KKR Chatbot Admin Console - Page management and embedding",
   "type": "module",
   "main": "dist/admin.js",
   "scripts": {

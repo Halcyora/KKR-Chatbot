@@ -1,4 +1,4 @@
-# Ness Chatbot — Architecture
+# KKR Chatbot — Architecture
 
 ## 0. Answering your Q5: "Is RAG better?"
 Yes — for Ness specifically, **hybrid** is correct, not pure RAG:

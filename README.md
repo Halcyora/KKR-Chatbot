@@ -1,12 +1,18 @@
 # KKR Chatbot
 
-A cost-optimized, hybrid **RAG + tool-calling** chatbot platform built for KKR.com (originally scaffolded for Ness, and portable to any site via config). It combines FAISS-based semantic search over scraped site content with live tool-calling for frequently-changing data (careers, news), guardrails against prompt injection/PII, response caching, and short-term conversation memory for follow-up questions.
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.139-009688.svg)](https://fastapi.tiangolo.com)
+[![React 19](https://img.shields.io/badge/React-19-61DAFB.svg)](https://react.dev)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> Swapping to a new website only requires a new `config/sites/<site_id>.json` file and re-running ingestion — no core code changes.
+A cost-optimized, hybrid **RAG + tool-calling** chatbot platform built for KKR.com — portable to any website via a single config file. It combines FAISS-based semantic search over scraped site content with live tool-calling for frequently-changing data (careers, news), guardrails against prompt injection/PII, response caching, and short-term conversation memory for follow-up questions.
+
+> **Multi-site portability:** Swapping to a new website only requires a new `config/sites/<site_id>.json` file and re-running ingestion — no core code changes.
 
 ---
 
 ## Table of Contents
+
 - [Architecture](#architecture)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
@@ -23,6 +29,7 @@ A cost-optimized, hybrid **RAG + tool-calling** chatbot platform built for KKR.c
 - [Docker](#docker)
 - [Environment Variables](#environment-variables)
 - [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
 
 ---
 
@@ -69,13 +76,14 @@ flowchart TB
 ```
 
 ### Request Flow
+
 1. Widget loads → calls `POST /session/start` → gets welcome message + config-driven quick-action buttons (About, Investment Approach, Open Positions, Latest Insights, Contact Us).
 2. User sends a message (or clicks a button) → `POST /message` with `site_id`, `message`, and a persistent `session_id`.
 3. **Input guardrails** block prompt-injection and PII before any LLM call.
 4. **Cache check** — identical queries return instantly (skipped mid-conversation to avoid stale contextual answers).
 5. **Intent classification** routes the message:
    - `greeting` → canned welcome reply (no LLM call)
-   - `dynamic` (careers/news keywords) → **tool-calling** hits live data, no LLM needed to fetch, LLM only formats
+   - `dynamic` (careers/news keywords) → **tool-calling** hits live data; LLM only formats the response
    - `stable` (everything else) → **RAG**: embed query (augmented with the last user turn for follow-ups) → FAISS similarity search → if a confident match is found, generate a grounded answer with Bedrock; otherwise return a safe fallback reply
 6. **Output guardrails** verify the LLM answer is actually grounded in the retrieved chunks; ungrounded answers are replaced with a fallback.
 7. The turn is cached (first-turn queries only) and appended to **session memory** (last 3 exchanges) so follow-up questions like *"when was it founded?"* can be resolved using prior context.
@@ -95,7 +103,7 @@ flowchart TB
 | Object storage | MinIO (local) / S3 (prod) |
 | Scraping | `requests` + `BeautifulSoup4`, with Playwright as a headless-browser fallback |
 | Chat widget | React 19 + TypeScript + Vite |
-| Admin console | React + TypeScript + Vite |
+| Admin console | React 18 + TypeScript + Vite |
 | Testing | pytest |
 | Containerization | Docker + docker-compose |
 
@@ -104,45 +112,76 @@ flowchart TB
 ## Project Structure
 
 ```
-Ness Chatbot/
-├── api/                      # FastAPI backend
-│   ├── app.py                 # Routes: /health, /session/start, /message, /admin/*
-│   ├── orchestrator.py        # Core message-handling pipeline
-│   ├── intent_router.py       # greeting / stable / dynamic classification
-│   ├── rag_retriever.py       # FAISS retrieval + tool-calling registry
-│   ├── guardrails.py          # Input (injection/PII) + output (grounding) checks
-│   ├── cache.py                # Response cache (DynamoDB)
-│   ├── session_memory.py      # Short-term conversation memory (DynamoDB)
-│   ├── config_loader.py       # Loads config/sites/<site_id>.json
-│   ├── admin_pages.py          # Page candidate CRUD for the admin console
-│   ├── llm/                    # LLM provider abstraction (Bedrock, local)
-│   └── tools/                  # get_open_positions, get_latest_news, etc.
-├── ingestion/
-│   ├── scraper.py              # Discovers & scrapes pages (requests/BS4 + Playwright fallback)
-│   ├── chunker.py              # Splits page text into overlapping chunks
-│   └── embedder.py             # Embeds chunks via Bedrock, builds/uploads FAISS index
+KKR-Chatbot/
+├── api/                            # FastAPI backend
+│   ├── app.py                      # Routes: /health, /session/start, /message, /admin/*
+│   ├── orchestrator.py             # Core message-handling pipeline
+│   ├── intent_router.py            # greeting / stable / dynamic classification
+│   ├── rag_retriever.py            # FAISS retrieval + tool-calling registry
+│   ├── guardrails.py               # Input (injection/PII) + output (grounding) checks
+│   ├── cache.py                    # Response cache (DynamoDB)
+│   ├── session_memory.py           # Short-term conversation memory (DynamoDB)
+│   ├── rate_limiter.py             # In-process per-client rate limiting
+│   ├── config_loader.py            # Loads config/sites/<site_id>.json
+│   ├── admin_pages.py              # Page candidate CRUD for the admin console
+│   ├── llm/                        # LLM provider abstraction
+│   │   ├── base_provider.py        # Abstract base class
+│   │   ├── bedrock_provider.py     # AWS Bedrock implementation
+│   │   └── local_provider.py       # Local/offline implementation
+│   └── tools/                      # Tool-calling implementations
+│       └── __init__.py             # get_open_positions, get_latest_news
+├── ingestion/                      # Admin-triggered content pipeline
+│   ├── scraper.py                  # Discovers & scrapes pages (requests/BS4 + Playwright fallback)
+│   ├── chunker.py                  # Splits page text into overlapping chunks
+│   └── embedder.py                 # Embeds chunks via Bedrock, builds/uploads FAISS index
 ├── config/
 │   └── sites/
-│       ├── kkr.json             # Active site config (branding, quick actions, keywords)
-│       └── ness.json
-├── widget/                     # End-user chat widget (React + Vite, localhost:5173)
-│   └── src/
-│       ├── App.tsx              # Chat UI, session/localStorage handling
-│       ├── hooks/useChat.ts     # /message API client
-│       └── types.ts
-├── admin/                      # Content management console (React + Vite, localhost:3000)
-│   └── src/AdminConsole.tsx     # Login screen + page selection/refresh/embed UI
-├── scripts/
-│   ├── create_local_tables.py   # Provisions DynamoDB tables for local dev
-│   ├── create_local_bucket.py   # Provisions MinIO bucket for local dev
-│   └── create_minio_bucket.py
+│       ├── kkr.json                # KKR site config (branding, quick actions, keywords)
+│       └── ness.json               # Example/template for additional sites
+├── widget/                         # End-user chat widget (React 19 + Vite → localhost:5173)
+│   ├── src/
+│   │   ├── App.tsx                 # Chat UI, session/localStorage handling
+│   │   ├── components/
+│   │   │   ├── ChatWindow.tsx      # Message list with markdown rendering
+│   │   │   ├── MessageInput.tsx    # Input bar with send button
+│   │   │   └── QuickActions.tsx    # Config-driven quick-action buttons
+│   │   ├── hooks/
+│   │   │   └── useChat.ts          # /message API client hook
+│   │   └── types.ts                # Shared TypeScript types
+│   ├── package.json
+│   └── vite.config.ts
+├── admin/                          # Content management console (React 18 + Vite → localhost:3000)
+│   ├── src/
+│   │   └── AdminConsole.tsx        # Login screen + page selection/refresh/embed UI
+│   ├── package.json
+│   └── vite.config.ts
+├── scripts/                        # Local dev provisioning helpers
+│   ├── create_local_tables.py      # Provisions DynamoDB tables for local dev
+│   ├── create_local_bucket.py      # Provisions MinIO bucket for local dev
+│   └── create_minio_bucket.py      # Alternative MinIO bucket creation script
 ├── tests/
-│   ├── unit/                    # Per-module unit tests
-│   └── integration/
-├── docker-compose.yml           # dynamodb-local + minio + app
-├── Dockerfile
-├── requirements.txt
-└── architecture.md              # Original design rationale/tradeoffs doc
+│   ├── unit/                       # Per-module unit tests
+│   │   ├── test_admin_pages.py
+│   │   ├── test_cache.py
+│   │   ├── test_chunker.py
+│   │   ├── test_config_loader.py
+│   │   ├── test_guardrails.py
+│   │   ├── test_intent_router.py
+│   │   ├── test_llm_provider.py
+│   │   ├── test_rag_retriever.py
+│   │   ├── test_rate_limiter.py
+│   │   └── test_scraper.py
+│   ├── integration/                # Integration tests
+│   └── conftest.py                 # Shared pytest fixtures
+├── docker-compose.yml              # dynamodb-local + minio + app
+├── Dockerfile                      # Production image (python:3.14-slim)
+├── .dockerignore                   # Docker build exclusions
+├── .env.example                    # Environment variable template (copy to .env)
+├── .gitignore
+├── requirements.txt                # Python dependencies (pinned)
+├── CHANGELOG.md                    # Version history
+├── CONTRIBUTING.md                 # Contribution guidelines
+└── architecture.md                 # Design rationale and trade-off analysis
 ```
 
 ---
@@ -159,8 +198,10 @@ Ness Chatbot/
 ## Setup
 
 ### 1. Clone and install Python dependencies
+
 ```powershell
-cd "Ness Chatbot"
+git clone https://github.com/your-org/KKR-Chatbot.git
+cd KKR-Chatbot
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
@@ -168,9 +209,11 @@ playwright install chromium   # only needed if the scraper falls back to headles
 ```
 
 ### 2. Configure environment variables
+
 ```powershell
 copy .env.example .env
 ```
+
 Edit `.env` and set at minimum:
 - `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_REGION` — must have Bedrock model access
 - `ADMIN_API_KEY` — a strong secret for the admin console (see [Environment Variables](#environment-variables))
@@ -182,18 +225,22 @@ DYNAMODB_ENDPOINT_URL=http://localhost:8000
 ```
 
 ### 3. Start local infrastructure (DynamoDB + MinIO)
+
 ```powershell
 docker-compose up -d dynamodb-local minio
 ```
 
 ### 4. Provision local tables & bucket
+
 ```powershell
 python scripts/create_local_tables.py
 python scripts/create_local_bucket.py
 ```
+
 This creates the `page_candidates`, `response_cache`, and `session_history` DynamoDB tables, plus the MinIO bucket used to store the FAISS index.
 
 ### 5. Install frontend dependencies
+
 ```powershell
 cd widget; npm install; cd ..
 cd admin; npm install; cd ..
@@ -217,6 +264,7 @@ cd admin; npm run dev
 ```
 
 Verify the backend is up:
+
 ```powershell
 Invoke-RestMethod http://localhost:8080/health
 # -> { "status": "ok" }
@@ -241,10 +289,10 @@ Ingestion is **manual/admin-triggered** — nothing is scraped or embedded autom
 | Intent | Example | Handler | LLM used? |
 |---|---|---|---|
 | Greeting | "hi", "good morning" | Canned welcome reply | No |
-| Dynamic — careers | "any job openings?" | `get_open_positions()` tool | No (LLM not needed; raw structured data returned) |
+| Dynamic — careers | "any job openings?" | `get_open_positions()` tool | No (raw structured data returned) |
 | Dynamic — news | "what's the latest news?" | `get_latest_news()` tool | No |
 | Stable | "what does KKR do?" | FAISS retrieval → Bedrock generation, grounded in retrieved chunks | Yes |
-| Quick-action button (canned) | "Contact Us" | Pre-written reply from config, no backend round trip for content | No |
+| Quick-action button (canned) | "Contact Us" | Pre-written reply from config, no backend round trip | No |
 | Blocked | prompt injection / PII | Safe canned reply | No |
 | No RAG match | gibberish / off-topic | Configurable fallback reply pointing to contact info | No |
 
@@ -286,9 +334,9 @@ Each site is fully described by one JSON file — no code changes needed to onbo
   "branding": { "name": "KKR", "primary_color": "#003366", "logo_url": "..." },
   "welcome_message": "👋 Welcome to KKR! ...",
   "quick_actions": [
-    { "id": "about", "label": "About KKR", "route": "rag", "query": "What is KKR and what does the company do?" },
-    { "id": "careers", "label": "Open Positions", "route": "tool", "tool": "get_open_positions" },
-    { "id": "contact", "label": "Contact Us", "route": "canned", "reply": "For inquiries, visit ..." }
+    { "id": "about",    "label": "About KKR",         "route": "rag",    "query": "What is KKR and what does the company do?" },
+    { "id": "careers",  "label": "Open Positions",     "route": "tool",   "tool": "get_open_positions" },
+    { "id": "contact",  "label": "Contact Us",         "route": "canned", "reply": "For inquiries, visit ..." }
   ],
   "fallback_reply": "I couldn't find specific information about that. ..."
 }
@@ -325,19 +373,22 @@ Each site is fully described by one JSON file — no code changes needed to onbo
 ```powershell
 python -m pytest tests/ -q -s
 ```
+
 (`-s` avoids a known capture-stream issue with very new Python builds; safe to omit on standard Python versions.)
 
-Covers: config loading, chunking, guardrails, intent routing, LLM provider abstraction, RAG retriever, cache, admin page management, and the scraper.
+Covers: config loading, chunking, guardrails, intent routing, LLM provider abstraction, RAG retriever, cache, rate limiting, admin page management, and the scraper.
 
 ---
 
 ## Docker
 
 Build and run the full stack (backend + local DynamoDB + MinIO) in containers:
+
 ```powershell
 docker-compose up -d
 ```
-The same Docker image is designed to be portable to a company on-prem server later — swap `LLM_PROVIDER=local` and point at an internal model endpoint with no code changes elsewhere (see `architecture.md` for the full rationale).
+
+The same Docker image is designed to be portable to a company on-prem server — swap `LLM_PROVIDER=local` and point at an internal model endpoint with no code changes elsewhere (see `architecture.md` for the full rationale).
 
 ---
 
@@ -354,8 +405,8 @@ The same Docker image is designed to be portable to a company on-prem server lat
 | `DYNAMODB_TABLE_CANDIDATES` | Table name for discovered pages | `page_candidates` |
 | `DYNAMODB_TABLE_CACHE` | Table name for response cache | `response_cache` |
 | `DYNAMODB_TABLE_SESSIONS` | Table name for session/conversation memory | `session_history` |
-| `S3_BUCKET_INDEX` | Bucket for the FAISS index | `ness-chatbot-index-prod` |
-| `ADMIN_API_KEY` | Required `X-Admin-Key` header value for `/admin/*` routes | set a strong secret; never expose the real value in UI |
+| `S3_BUCKET_INDEX` | Bucket for the FAISS index | `kkr-chatbot-index-prod` |
+| `ADMIN_API_KEY` | Required `X-Admin-Key` header value for `/admin/*` routes | set a strong secret; never expose in UI |
 | `SERVER_PORT` / `SERVER_HOST` | FastAPI bind address | `8080` / `0.0.0.0` |
 | `LANGSMITH_API_KEY` / `LANGSMITH_PROJECT` | Optional LangChain tracing | blank (disabled) |
 
@@ -373,3 +424,10 @@ The same Docker image is designed to be portable to a company on-prem server lat
 | `docker-compose up` DynamoDB container crash-loops on Windows | Already handled via `-inMemory` flag in `docker-compose.yml` (avoids a Docker Desktop volume permission issue) |
 | Scraper returns empty content | Site may be JS-rendered; the scraper falls back to Playwright automatically — ensure `playwright install chromium` has been run |
 | Admin/widget dev server picks a random port | Both `vite.config.ts` files set `strictPort: true` — free the configured port (5173 / 3000) instead of letting Vite silently switch |
+| Rate limit errors (429) during testing | The in-process rate limiter resets on server restart; restart the API server or wait for the window to roll over |
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on branching, commit conventions, and the pull-request process.

@@ -1,0 +1,57 @@
+# Git
+.git
+.gitignore
+
+# Environment files (never bake secrets into the image)
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+venv/
+ENV/
+env/
+.venv/
+
+# Node / frontend (built separately or mounted at runtime)
+widget/node_modules/
+widget/dist/
+admin/node_modules/
+admin/dist/
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+tests/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docs (not needed in the image)
+*.md
+docs/
+architecture.md
+
+# Local data volumes
+dynamodb_local/
+minio_data/
+
+# Scripts (only needed for local dev provisioning)
+scripts/

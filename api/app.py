@@ -1,5 +1,5 @@
 """
-FastAPI application for Ness Chatbot API.
+FastAPI application for KKR Chatbot API.
 
 Exposes:
 - POST /session/start - Initialize chat session
@@ -30,7 +30,7 @@ from api.admin_pages import (
 load_dotenv()
 
 # FastAPI app setup
-app = FastAPI(title="Ness Chatbot API", version="0.1.0")
+app = FastAPI(title="KKR Chatbot API", version="0.1.0")
 
 # CORS (for frontend)
 app.add_middleware(
@@ -47,11 +47,11 @@ ADMIN_API_KEY = os.getenv("ADMIN_API_KEY", "dev-secret-key-change-in-prod")
 
 # Pydantic models
 class StartSessionRequest(BaseModel):
-    site_id: str = "ness"
+    site_id: str = "kkr"
 
 
 class MessageRequest(BaseModel):
-    site_id: str = "ness"
+    site_id: str = "kkr"
     message: str
     session_id: str = ""
 
@@ -140,7 +140,7 @@ async def clear_cache(request: ClearCacheRequest = ClearCacheRequest()) -> Dict[
 # Admin routes (require API key)
 @app.get("/admin/pages")
 async def get_pages(
-    site_id: str = "ness",
+    site_id: str = "kkr",
     x_admin_key: Optional[str] = Header(None),
 ) -> Dict[str, Any]:
     """
@@ -165,7 +165,7 @@ async def get_pages(
 async def update_page_status(
     page_url: str,
     request: SetPageStatusRequest,
-    site_id: str = "ness",
+    site_id: str = "kkr",
     x_admin_key: Optional[str] = Header(None),
 ) -> Dict[str, Any]:
     """
@@ -189,7 +189,7 @@ async def update_page_status(
 
 @app.post("/admin/refresh")
 async def refresh_pages(
-    site_id: str = "ness",
+    site_id: str = "kkr",
     x_admin_key: Optional[str] = Header(None),
 ) -> Dict[str, Any]:
     """
@@ -213,7 +213,7 @@ async def refresh_pages(
 
 @app.post("/admin/embed")
 async def trigger_embedding(
-    site_id: str = "ness",
+    site_id: str = "kkr",
     x_admin_key: Optional[str] = Header(None),
 ) -> Dict[str, Any]:
     """
@@ -227,7 +227,7 @@ async def trigger_embedding(
         result = trigger_embed(site_id)
         return result
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":

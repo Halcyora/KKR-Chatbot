@@ -3,7 +3,7 @@ version: '3.8'
 services:
   dynamodb-local:
     image: amazon/dynamodb-local:latest
-    container_name: ness-dynamodb-local
+    container_name: kkr-dynamodb-local
     ports:
       - "8000:8000"
     environment:
@@ -12,7 +12,7 @@ services:
     # where the SQLite data file can't be opened, causing the container to crash-loop
     command: -jar DynamoDBLocal.jar -sharedDb -inMemory
     networks:
-      - ness-network
+      - kkr-network
     healthcheck:
       # DynamoDB Local returns HTTP 400 on GET / (no -f, since that's a valid "it's up" response)
       test: ["CMD-SHELL", "curl -s -o /dev/null http://localhost:8000/ || exit 1"]
@@ -22,7 +22,7 @@ services:
 
   minio:
     image: quay.io/minio/minio:latest
-    container_name: ness-minio
+    container_name: kkr-minio
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -33,7 +33,7 @@ services:
     volumes:
       - minio-data:/data
     networks:
-      - ness-network
+      - kkr-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 5s
@@ -42,12 +42,12 @@ services:
 
   app:
     build: .
-    container_name: ness-app
+    container_name: kkr-app
     ports:
       - "8080:8080"
     environment:
       - LLM_PROVIDER=bedrock
-      - BEDROCK_MODEL_ID=amazon.titan-text-express-v1:0
+      - BEDROCK_MODEL_ID=amazon.nova-micro-v1:0
       - BEDROCK_EMBEDDINGS_MODEL_ID=amazon.titan-embed-text-v1
       - AWS_REGION=us-east-1
       - AWS_ACCESS_KEY_ID=minioadmin
@@ -56,7 +56,8 @@ services:
       - DYNAMODB_ENDPOINT_URL=http://dynamodb-local:8000
       - DYNAMODB_TABLE_CANDIDATES=page_candidates
       - DYNAMODB_TABLE_CACHE=response_cache
-      - S3_BUCKET_INDEX=ness-chatbot-index
+      - DYNAMODB_TABLE_SESSIONS=session_history
+      - S3_BUCKET_INDEX=kkr-chatbot-index
       - ADMIN_API_KEY=dev-secret-key-change-in-prod
     depends_on:
       dynamodb-local:
@@ -64,7 +65,7 @@ services:
       minio:
         condition: service_healthy
     networks:
-      - ness-network
+      - kkr-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
@@ -75,5 +76,5 @@ volumes:
   minio-data:
 
 networks:
-  ness-network:
+  kkr-network:
     driver: bridge

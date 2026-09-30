@@ -25,6 +25,7 @@ MANIFEST
 venv/
 ENV/
 env/
+.venv/
 
 # IDE
 .vscode/
@@ -34,7 +35,7 @@ env/
 *~
 .DS_Store
 
-# Environment
+# Environment — NEVER commit real credentials
 .env
 .env.local
 .env.*.local
@@ -52,12 +53,14 @@ build/
 .coverage
 htmlcov/
 
-# Docker
-.dockerignore
-
-# Local AWS
+# Local AWS / dev infrastructure data
 dynamodb_local/
 minio_data/
+
+# FAISS index artifacts (built by ingestion; stored in S3/MinIO, not git)
+*.faiss
+*.index
+faiss_index/
 
 # Logs
 *.log
