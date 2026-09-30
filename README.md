@@ -155,10 +155,8 @@ KKR-Chatbot/
 │   │   └── AdminConsole.tsx        # Login screen + page selection/refresh/embed UI
 │   ├── package.json
 │   └── vite.config.ts
-├── scripts/                        # Local dev provisioning helpers
-│   ├── create_local_tables.py      # Provisions DynamoDB tables for local dev
-│   ├── create_local_bucket.py      # Provisions MinIO bucket for local dev
-│   └── create_minio_bucket.py      # Alternative MinIO bucket creation script
+├── scripts/
+│   └── create_local_tables.py      # Provisions DynamoDB tables for local dev
 ├── tests/
 │   ├── unit/                       # Per-module unit tests
 │   │   ├── test_admin_pages.py
@@ -179,7 +177,6 @@ KKR-Chatbot/
 ├── .env.example                    # Environment variable template (copy to .env)
 ├── .gitignore
 ├── requirements.txt                # Python dependencies (pinned)
-├── CHANGELOG.md                    # Version history
 ├── CONTRIBUTING.md                 # Contribution guidelines
 └── architecture.md                 # Design rationale and trade-off analysis
 ```
@@ -200,7 +197,7 @@ KKR-Chatbot/
 ### 1. Clone and install Python dependencies
 
 ```powershell
-git clone https://github.com/your-org/KKR-Chatbot.git
+git clone https://github.com/Halcyora/KKR-Chatbot.git
 cd KKR-Chatbot
 python -m venv venv
 venv\Scripts\activate
@@ -234,10 +231,9 @@ docker-compose up -d dynamodb-local minio
 
 ```powershell
 python scripts/create_local_tables.py
-python scripts/create_local_bucket.py
 ```
 
-This creates the `page_candidates`, `response_cache`, and `session_history` DynamoDB tables, plus the MinIO bucket used to store the FAISS index.
+This creates the `page_candidates`, `response_cache`, and `session_history` DynamoDB tables. The MinIO bucket is created automatically on first embed via the admin console.
 
 ### 5. Install frontend dependencies
 
