@@ -1,9 +1,9 @@
 # KKR Chatbot — Architecture
 
 ## 0. Answering your Q5: "Is RAG better?"
-Yes — for Ness specifically, **hybrid** is correct, not pure RAG:
-- **RAG** (embedded/indexed content) for stable info: services, about, industries, leadership, blog, case studies. Cheap (one-time embed + admin-triggered refresh, see §5c), fast, no live scrape per request.
-- **Live tool-calling** only for content that changes often or must be exact: open job listings, latest news/press releases, contact form status, pricing (if any). Calling live guarantees no stale/hallucinated data for these.
+Yes — for KKR specifically, **hybrid** is correct, not pure RAG:
+- **RAG** (embedded/indexed content) for stable info: investment approach, about, global impact, leadership, insights, press. Cheap (one-time embed + admin-triggered refresh, see §5c), fast, no live scrape per request.
+- **Live tool-calling** only for content that changes often or must be exact: open job listings, latest news/press releases, contact form status. Calling live guarantees no stale/hallucinated data for these.
 - Pure RAG risks stale "latest news"/"open roles". Pure live-scraping-on-every-query is slow and burns cost on stable content. Hybrid = cheapest + most accurate.
 
 ## 1. Design Principles

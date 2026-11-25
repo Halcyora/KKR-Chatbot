@@ -17,7 +17,7 @@ class TestCheckInput:
 
     def test_normal_message(self):
         """Test that normal messages pass."""
-        is_safe, reply = check_input("What services does Ness offer?")
+        is_safe, reply = check_input("What is KKR's investment approach?")
         assert is_safe
         assert reply is None
 
@@ -60,7 +60,7 @@ class TestCheckInput:
 
     def test_normal_with_numbers(self):
         """Test that normal messages with numbers pass."""
-        is_safe, reply = check_input("What was Ness founded in 2000?")
+        is_safe, reply = check_input("When was KKR founded in 1976?")
         assert is_safe
         assert reply is None
 
@@ -70,14 +70,14 @@ class TestCheckOutputGrounded:
 
     def test_grounded_answer(self):
         """Test that grounded answers pass."""
-        answer = "Ness provides consulting services."
-        sources = ["Ness offers consulting, development, and transformation services."]
+        answer = "KKR is a leading global investment firm."
+        sources = ["KKR is a leading global investment firm that manages multiple alternative asset classes."]
         assert check_output_grounded(answer, sources) is True
 
     def test_ungrounded_answer(self):
         """Test that ungrounded answers fail."""
-        answer = "Ness specializes in underwater basket weaving."
-        sources = ["Ness offers consulting and development services."]
+        answer = "KKR specializes in underwater basket weaving."
+        sources = ["KKR is a global investment firm focused on private equity and real assets."]
         assert check_output_grounded(answer, sources) is False
 
     def test_empty_answer(self):
@@ -94,19 +94,19 @@ class TestCheckOutputGrounded:
 
     def test_partial_overlap(self):
         """Test partial keyword overlap."""
-        answer = "Ness helps with consulting and digital transformation."
-        sources = ["Ness is a consulting company offering services."]
-        # Should be grounded (has word overlap: Ness, consulting, etc.)
+        answer = "KKR manages private equity and real assets globally."
+        sources = ["KKR is a global investment firm managing private equity, infrastructure, and real estate."]
+        # Should be grounded (has word overlap: KKR, private, equity, etc.)
         assert check_output_grounded(answer, sources) is True
 
     def test_high_overlap(self):
         """Test high keyword overlap."""
-        answer = "Ness provides consulting services to enterprises."
-        sources = ["Ness provides consulting services to global enterprises."]
+        answer = "KKR provides investment management services to global institutions."
+        sources = ["KKR provides investment management services to global institutional investors."]
         assert check_output_grounded(answer, sources) is True
 
     def test_case_insensitive_matching(self):
         """Test that matching is case-insensitive."""
-        answer = "Ness PROVIDES consulting."
-        sources = ["ness provides consulting services"]
+        answer = "KKR MANAGES investment portfolios."
+        sources = ["kkr manages investment portfolios globally"]
         assert check_output_grounded(answer, sources) is True

@@ -5,7 +5,7 @@ Classifies messages into:
 - greeting: Friendly opening messages
 - stable: Questions about stable content (use RAG)
 - dynamic: Questions about dynamic content (use tool-calling)
-- off_topic: Messages unrelated to Ness
+- off_topic: Messages unrelated to KKR
 """
 
 import re
@@ -165,14 +165,14 @@ if __name__ == "__main__":
 
     print("Testing Intent Router...\n")
 
-    config = load_site_config("ness")
+    config = load_site_config("kkr")
 
     test_messages = [
         "Hello!",
         "Hi there",
-        "What are your services?",
+        "What is KKR's investment approach?",
         "Are there any open positions?",
-        "Tell me about careers",
+        "Tell me about careers at KKR",
         "What's the latest news?",
         "Are you hiring?",
     ]

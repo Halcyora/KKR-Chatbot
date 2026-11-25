@@ -9,13 +9,13 @@ import tempfile
 from api.config_loader import load_site_config, ConfigError, get_config_path
 
 
-def test_load_ness_config():
-    """Test loading the Ness site config."""
-    config = load_site_config("ness")
+def test_load_kkr_config():
+    """Test loading the KKR site config."""
+    config = load_site_config("kkr")
 
     # Verify required keys are present
-    assert config["site_id"] == "ness"
-    assert config["base_url"] == "https://www.ness.com"
+    assert config["site_id"] == "kkr"
+    assert config["base_url"] == "https://www.kkr.com"
     assert isinstance(config["sitemap_seeds"], list)
     assert len(config["sitemap_seeds"]) > 0
     assert isinstance(config["dynamic_pages"], dict)
@@ -27,18 +27,18 @@ def test_load_ness_config():
 
 def test_config_has_required_branding():
     """Test that branding config has all required fields."""
-    config = load_site_config("ness")
+    config = load_site_config("kkr")
     branding = config["branding"]
 
     assert "name" in branding
     assert "primary_color" in branding
     assert "logo_url" in branding
-    assert branding["name"] == "Ness"
+    assert branding["name"] == "KKR"
 
 
 def test_config_has_valid_quick_actions():
     """Test that quick_actions are properly configured."""
-    config = load_site_config("ness")
+    config = load_site_config("kkr")
     actions = config["quick_actions"]
 
     assert len(actions) >= 3, "Should have at least 3 quick actions"
@@ -60,7 +60,7 @@ def test_config_has_valid_quick_actions():
 
 def test_config_dynamic_pages():
     """Test that dynamic pages are properly configured."""
-    config = load_site_config("ness")
+    config = load_site_config("kkr")
     dynamic = config["dynamic_pages"]
 
     # Should have at least careers and news
@@ -107,4 +107,4 @@ def test_site_id_mismatch():
     """Test that site_id mismatch raises ValueError."""
     # This would require creating a temporary config with mismatched site_id
     # For now, we just note this is tested by the validation logic
-    pass  # Tested via load_ness_config above since Ness config is correct
+    pass  # Tested via test_load_kkr_config above since KKR config is correct

@@ -136,12 +136,12 @@ FALLBACK_REPLIES = {
         "Here are some resources that might help: {link}"
     ),
     "off_topic": (
-        "I'm specifically designed to help with Ness-related questions. "
-        "Please ask about our services, careers, leadership, or other company information!"
+        "I'm specifically designed to help with KKR-related questions. "
+        "Please ask about our investment approach, careers, leadership, or other company information!"
     ),
     "error": (
         "Sorry, I encountered an issue. "
-        "Please try again or contact us at contact@ness.com for assistance."
+        "Please try again or contact us at info@kkr.com for assistance."
     ),
 }
 
@@ -152,7 +152,7 @@ if __name__ == "__main__":
 
     # Test 1: Normal message
     print("Test 1: Normal message")
-    is_safe, reply = check_input("What services does Ness offer?")
+    is_safe, reply = check_input("What does KKR invest in?")
     print(f"  Safe: {is_safe}, Reply: {reply}\n")
 
     # Test 2: Injection attempt
@@ -167,14 +167,14 @@ if __name__ == "__main__":
 
     # Test 4: Grounding check - grounded
     print("Test 4: Grounding check - grounded")
-    answer = "Ness provides consulting and software development services."
-    sources = ["Ness offers consulting, software development, and digital transformation services."]
+    answer = "KKR is a leading global investment firm managing multiple asset classes."
+    sources = ["KKR is a leading global investment firm that manages multiple alternative asset classes."]
     is_grounded = check_output_grounded(answer, sources)
     print(f"  Grounded: {is_grounded}\n")
 
     # Test 5: Grounding check - ungrounded
     print("Test 5: Grounding check - ungrounded (hallucination)")
-    answer = "Ness specializes in underwater basket weaving."
-    sources = ["Ness offers consulting and software development."]
+    answer = "KKR specializes in underwater basket weaving."
+    sources = ["KKR is a global investment firm focused on private equity and real assets."]
     is_grounded = check_output_grounded(answer, sources)
     print(f"  Grounded: {is_grounded}\n")

@@ -445,7 +445,7 @@ const AdminStyles: React.FC = () => (
 
 const AdminConsole: React.FC<AdminConsoleProps> = ({
   apiUrl = 'http://localhost:8080',
-  siteId = 'ness',
+  siteId = 'kkr',
 }) => {
   const [pages, setPages] = useState<PageCandidate[]>([])
   const [loading, setLoading] = useState(false)
@@ -645,7 +645,7 @@ const AdminConsole: React.FC<AdminConsoleProps> = ({
       const data = await response.json()
       const embeddedCount = data.embedded_count || 0
       const duration = Math.round(data.duration_seconds || 0)
-      alert(`✅ Successfully embedded ${embeddedCount} pages in ${duration}s`)
+      alert(`Γ£à Successfully embedded ${embeddedCount} pages in ${duration}s`)
       setEmbeddingProgress(100)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Embedding failed')
@@ -662,7 +662,7 @@ const AdminConsole: React.FC<AdminConsoleProps> = ({
         <AdminStyles />
         <div className="auth-screen">
           <div className="auth-card">
-            <div className="auth-logo">🔐</div>
+            <div className="auth-logo">≡ƒöÉ</div>
             <h1>Admin Console</h1>
             <p className="auth-subtitle">
               Sign in with your admin API key to manage <strong>{siteId}</strong> chatbot content
@@ -672,7 +672,7 @@ const AdminConsole: React.FC<AdminConsoleProps> = ({
               <div className="form-group">
                 <label htmlFor="apiKey">API Key</label>
                 <div className="input-group">
-                  <span className="input-icon">🔑</span>
+                  <span className="input-icon">≡ƒöæ</span>
                   <input
                     id="apiKey"
                     type={showApiKey ? 'text' : 'password'}
@@ -688,13 +688,13 @@ const AdminConsole: React.FC<AdminConsoleProps> = ({
                     onClick={() => setShowApiKey(!showApiKey)}
                     title={showApiKey ? 'Hide' : 'Show'}
                   >
-                    {showApiKey ? '🙈' : '👁️'}
+                    {showApiKey ? '≡ƒÖê' : '≡ƒæü∩╕Å'}
                   </button>
                 </div>
                 <small>Your key is stored in session storage only, never persisted to disk</small>
               </div>
 
-              {error && <div className="error-message">⚠️ {error}</div>}
+              {error && <div className="error-message">ΓÜá∩╕Å {error}</div>}
 
               <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
                 {loading ? (
@@ -709,7 +709,7 @@ const AdminConsole: React.FC<AdminConsoleProps> = ({
 
             {isLocalDev && (
               <div className="info-box">
-                <h3>ℹ️ Local Development</h3>
+                <h3>Γä╣∩╕Å Local Development</h3>
                 <p>Use the <code>ADMIN_API_KEY</code> value from your backend's <code>.env</code> file.</p>
               </div>
             )}
@@ -724,7 +724,7 @@ const AdminConsole: React.FC<AdminConsoleProps> = ({
       <AdminStyles />
       <div className="admin-header">
         <div>
-          <h1>📊 Admin Console</h1>
+          <h1>≡ƒôè Admin Console</h1>
           <p>Site: <strong>{siteId}</strong></p>
         </div>
         <button
@@ -769,14 +769,14 @@ const AdminConsole: React.FC<AdminConsoleProps> = ({
             onClick={handleRefreshPages}
             disabled={loading}
           >
-            🔄 Refresh Pages
+            ≡ƒöä Refresh Pages
           </button>
           <button
             className="btn btn-primary"
             onClick={handleEmbedSelected}
             disabled={loading || selectedCount === 0}
           >
-            ⚡ Embed {selectedCount} Selected
+            ΓÜí Embed {selectedCount} Selected
           </button>
         </div>
 
